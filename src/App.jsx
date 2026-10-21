@@ -143,7 +143,7 @@ function App() {
     <div className="site-shell">
       <main className="lp">
         <section className="hero" aria-labelledby="hero-title">
-          <h1 id="hero-title" className="sr-only">誰にも言えへんその話、大阪のおばちゃんにイウテミ</h1>
+          <h1 id="hero-title" className="sr-only">大阪のおばちゃんに匿名で電話相談できるサービス「イウテミ」</h1>
           <img src={ASSET('hero.png')} alt="誰にも言えへんその話、大阪のおばちゃんにイウテミ" />
           <div ref={heroCtaRef} className="hero__cta"><CTA /></div>
         </section>
