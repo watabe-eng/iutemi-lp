@@ -1,3 +1,5 @@
+import { useEffect, useRef, useState } from 'react'
+
 const ASSET = (name) => `${import.meta.env.BASE_URL}assets/${name}`
 const LINE_URL = 'https://line.me/R/ti/p/@768obrsu'
 
@@ -59,12 +61,14 @@ const testimonials = [
     quote: '「よう頑張ったな、の一言で心が温かくなりました。」',
     meta: '看護師 S.Nさん（30）',
     image: 'voice-call.png',
+    imageAlt: '利用者の女性',
     body: '一人暮らしで、仕事から帰ると誰とも話さないまま一日が終わることがあります。友達に連絡するのも気が引けて、つい我慢していました。おばちゃんが「今日もよう頑張ったなあ」と話を聞いてくれて、張りつめていた気持ちが少し楽になりました。何かを解決しなくても、誰かと話せるだけで安心できるんだと思いました。',
   },
   {
     quote: '「恋愛のモヤモヤを、一緒に笑い飛ばしてくれました」',
-    meta: '事務OL M.Kさん（30）',
+    meta: '事務職 M.Kさん（30）',
     image: 'voice-message.png',
+    imageAlt: '利用者の女性',
     body: '友達には何度も相談していて、これ以上話しづらいなと思い利用しました。最初は緊張しましたが、「それはしんどかったなあ」と優しく聞いてくれて安心しました。最後は一緒に笑いながら、自分がどうしたいのかを整理できました。',
   },
 ]
@@ -102,13 +106,46 @@ function SectionTitle({ eyebrow, children }) {
 }
 
 function App() {
+  const heroCtaRef = useRef(null)
+  const closingCtaRef = useRef(null)
+  const [showFloatingCta, setShowFloatingCta] = useState(false)
+
+  useEffect(() => {
+    let animationFrame
+
+    const updateFloatingCta = () => {
+      cancelAnimationFrame(animationFrame)
+      animationFrame = requestAnimationFrame(() => {
+        const heroCta = heroCtaRef.current
+        const closingCta = closingCtaRef.current
+        if (!heroCta || !closingCta) return
+
+        const heroRect = heroCta.getBoundingClientRect()
+        const closingRect = closingCta.getBoundingClientRect()
+        const closingIsVisible = closingRect.top < window.innerHeight && closingRect.bottom > 0
+
+        setShowFloatingCta(heroRect.bottom <= 0 && !closingIsVisible)
+      })
+    }
+
+    updateFloatingCta()
+    window.addEventListener('scroll', updateFloatingCta, { passive: true })
+    window.addEventListener('resize', updateFloatingCta)
+
+    return () => {
+      cancelAnimationFrame(animationFrame)
+      window.removeEventListener('scroll', updateFloatingCta)
+      window.removeEventListener('resize', updateFloatingCta)
+    }
+  }, [])
+
   return (
     <div className="site-shell">
       <main className="lp">
         <section className="hero" aria-labelledby="hero-title">
           <h1 id="hero-title" className="sr-only">誰にも言えへんその話、大阪のおばちゃんにイウテミ</h1>
           <img src={ASSET('hero.png')} alt="誰にも言えへんその話、大阪のおばちゃんにイウテミ" />
-          <div className="hero__cta"><CTA /></div>
+          <div ref={heroCtaRef} className="hero__cta"><CTA /></div>
         </section>
 
         <section className="concerns section">
@@ -170,7 +207,14 @@ function App() {
             {testimonials.map((voice) => (
               <article className="voice-card" key={voice.meta}>
                 <div className="voice-card__head">
-                  <img src={ASSET(voice.image)} alt="" />
+                  <img
+                    src={ASSET(voice.image)}
+                    alt={voice.imageAlt}
+                    width="84"
+                    height="84"
+                    loading="lazy"
+                    decoding="async"
+                  />
                   <div><h3>{voice.quote}</h3><p>{voice.meta}</p></div>
                 </div>
                 <p>{voice.body}</p>
@@ -192,11 +236,14 @@ function App() {
         </section>
 
         <section className="closing" aria-label="お申し込み案内">
-          <a href={LINE_URL} aria-label="LINEでおばちゃんを見てみる">
+          <a ref={closingCtaRef} href={LINE_URL} aria-label="LINEでおばちゃんを見てみる">
             <img src={ASSET('closing-offer.png')} alt="その悩み、おばちゃんにイウテミ。期間限定半額980円" />
           </a>
         </section>
       </main>
+      <div className={`floating-cta ${showFloatingCta ? 'is-visible' : ''}`} aria-hidden={!showFloatingCta}>
+        <CTA />
+      </div>
     </div>
   )
 }
